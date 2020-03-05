@@ -1,6 +1,6 @@
 # 👮Murundiri
 
-Murundiri is a blazing fast idepotency reverse proxy. It could also exist as an independent service (if you don't want to use it as a proxy.)
+Murundiri is a blazing fast idempotent reverse proxy. It could also exist as an independent service (if you don't want to use it as a proxy.)
 
 ## Important
 
@@ -8,8 +8,8 @@ This is still a work in progress.
 
 ## Roadmap
 
-- [ ] Implement Yaml config parser
-- [ ] Add revers proxy handler
+- [x] Implement murundiri config parser
+- [ ] Add reverse proxy
   - [ ] Implement proxy request interceptor
   - [ ] Validate request info based on idepotency rule
 - [ ] Cache idempotency fields to redis
