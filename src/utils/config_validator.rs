@@ -52,23 +52,23 @@ fn parses_config() {
     let yaml = r#"
 port: 8080
 services:
-  billing_service:
+  book_service:
     rules:
-      ^/api/v1/bill/uba:
+      ^/api/v1/books:
         timeframe: 2 #ms
         fields:
           body:
             - trx_id
             - apple_id
 
-  payment_service:
+  shipping_service:
     rules:
-      \w+/api/cashout:
+      \w+/api/ships:
         timeframe: 3
         fields:
           query:
-            - users
-            - password
+            - ship_id
+            - reference
           header:
             - Authorization
             - Content-Type
@@ -79,9 +79,9 @@ services:
     let expected_config = Config {
         port: "8080".to_string(),
         services: hashmap![
-            "billing_service".to_string() => Service {
+            "book_service".to_string() => Service {
                 rules: hashmap![
-                    "^/api/v1/bill/uba".to_string() => Rule {
+                    "^/api/v1/books".to_string() => Rule {
                         timeframe: 2,
                         fields: RuleFields {
                             body: Some(["trx_id".to_string(), "apple_id".to_string()].to_vec()),
@@ -91,13 +91,13 @@ services:
                     }
                 ],
             },
-            "payment_service".to_string() => Service {
+            "shipping_service".to_string() => Service {
                 rules: hashmap![
-                    r#"\w+/api/cashout"#.to_string() => Rule {
+                    r#"\w+/api/ships"#.to_string() => Rule {
                         timeframe: 3,
                         fields: RuleFields {
                             body: None,
-                            query: Some(["users".to_string(), "password".to_string()].to_vec()),
+                            query: Some(["ship_id".to_string(), "reference".to_string()].to_vec()),
                             header: Some(["Authorization".to_string(), "Content-Type".to_string()].to_vec()),
                         }
                     }
@@ -108,4 +108,3 @@ services:
 
     assert_eq!(parsed_config, expected_config);
 }
-
