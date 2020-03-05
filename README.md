@@ -1,6 +1,11 @@
 # 👮Murundiri
 
-Murundiri is a blazing fast idempotent reverse proxy. It could also exist as an independent service (if you don't want to use it as a proxy.)
+Murundiri is a blazing fast and stand-alone idempotency enforcing proxy designed for scale.
+
+## Features
+
+- It can exist as either a `proxy` or `stand-alone` service.
+- Allows supporte for integration with a redis cluster for caching.
 
 ## Important
 
