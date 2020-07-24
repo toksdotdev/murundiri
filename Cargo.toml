@@ -13,3 +13,9 @@ itertools = "0.8.2"
 hyper-reverse-proxy = "0.4"
 hyper = "0.13.3"
 futures = "0.3.4"
+
+[package.metadata.android]
+foo = "bar"
+
+[package.metadata.nuget_dependencies]
+"Win2D.uwp" = "1.25.0"
