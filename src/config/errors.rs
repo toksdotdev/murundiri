@@ -5,4 +5,5 @@ use std::io::Error as IoError;
 pub enum ConfigParseError {
     Io(IoError),
     InvalidSyntax(YamlError),
+    InvalidRegexRule,
 }

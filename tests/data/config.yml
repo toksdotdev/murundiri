@@ -1,45 +1,37 @@
 port: 8080
-services:
-  book_service:
-    rules:
-      ^/api/v1/books:
-        timeframe: 2 #ms
-        action:
-          respond:
-            success: { status: "success", message: "Is idempotent." } # data about the request is appended automatically.
-            failure: { status: "failed", message: "Not idempotent." } # data about the request is appended automatically.
-        fields:
-          body:
-            - trx_id
-            - apple_id
+rules:
+  ^/api/v1/books:
+    timeframe: 2 #ms
+    action:
+      respond:
+        success: { status: "success", message: "Is idempotent." }
+        failure: { status: "failed", message: "Not idempotent." }
+    fields:
+      body:
+        - trx_id
+        - apple_id
 
-  billing_service:
-    rules:
-      ^/api/v1/recipient:
-        timeframe: 5 #ms
-        action:
-          respond:
-            success: { status: "pending", message: "Bill is still pending." }
-            failure:
-              {
-                status: "unknown",
-                message: "Bill status is currently unknown.",
-              }
-        fields:
-          body:
-            - card
-            - pan
-  shipping_service:
-    rules:
-      \w+/api/ships:
-        timeframe: 3
-        action:
-          redirect:
-            url: https://google.com:9000/v2
-        fields:
-          query:
-            - ship_id
-            - reference
-          header:
-            - Authorization
-            - Content-Type
+  ^/api/v1/recipient:
+    timeframe: 5 #ms
+    action:
+      respond:
+        success: { status: "pending", message: "Bill is still pending." }
+        failure:
+          { status: "unknown", message: "Bill status is currently unknown." }
+    fields:
+      body:
+        - card
+        - pan
+
+  \w+/api/ships:
+    timeframe: 3
+    action:
+      redirect:
+        uri: https://google.com:9000/v2
+    fields:
+      query:
+        - ship_id
+        - reference
+      header:
+        - Authorization
+        - Content-Type
