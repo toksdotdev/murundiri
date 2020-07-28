@@ -14,7 +14,7 @@ This is still a work in progress.
 ## Roadmap
 
 - [x] Implement murundiri config parser
-- [ ] Add reverse proxy
-  - [ ] Implement proxy request interceptor
-  - [ ] Validate request info based on idepotency rule
+- [x] Add reverse proxy
+  - [x] Implement proxy request interceptor
+  - [x] Validate request info based on idepotency rule
 - [ ] Cache idempotency fields to redis
