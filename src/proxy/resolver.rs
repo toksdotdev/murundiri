@@ -1,18 +1,35 @@
 use super::errors::ProxyError;
-use crate::config::{Config, Json, Rule, RuleAction::*, RuleFields};
+use crate::{
+    async_transaction,
+    config::{Config, Json, Rule, RuleAction::*, RuleFields, Stringify},
+};
 use hyper::{Body, Request, Response, StatusCode};
 use hyper_reverse_proxy::{call, ProxyError as HyperReverseProxyError};
-use std::{fmt::Debug, net::SocketAddr};
+use r2d2::{ManageConnection, Pool};
+use redis::{pipe, AsyncCommands, ConnectionLike};
+use std::net::SocketAddr;
 
-#[derive(Debug)]
-pub struct Resolver {
+pub struct Resolver<M, C>
+where
+    C: AsyncCommands + Send + Copy + 'static,
+    M: ConnectionLike + ManageConnection<Connection = C>,
+{
     socket: SocketAddr,
     config: Config,
+    redis: Pool<M>,
 }
 
-impl Resolver {
-    pub fn new(socket: SocketAddr, config: Config) -> Self {
-        Self { socket, config }
+impl<C, M> Resolver<M, C>
+where
+    C: AsyncCommands + Copy + Send + 'static,
+    M: ConnectionLike + ManageConnection<Connection = C>,
+{
+    pub fn new(socket: SocketAddr, config: Config, redis: Pool<M>) -> Self {
+        Self {
+            socket,
+            config,
+            redis,
+        }
     }
 
     pub async fn route(&self, req: Request<Body>) -> Result<Response<Body>, ProxyError> {
@@ -28,9 +45,9 @@ impl Resolver {
         rule: &Rule,
         req: Request<Body>,
     ) -> Result<Response<Body>, ProxyError> {
-        let added = self.insert_idempotency(&rule.fields)?;
+        let exists = self.exists_or_create(rule.ttl, &rule.fields).await?;
 
-        match (added, &rule.action) {
+        match (exists, &rule.action) {
             (false, Redirect { .. }) => Ok(self.forbidden_response(None)),
             (false, Respond { failure, .. }) => Ok(self.forbidden_response(Some(failure))),
             (true, Respond { success, .. }) => Ok(self.ok_response(Some(success))),
@@ -38,11 +55,21 @@ impl Resolver {
         }
     }
 
-    fn insert_idempotency(&self, fields: &RuleFields) -> Result<bool, ProxyError> {
-        // TODO: Insert intor redis here.
-        // not found, and inserted => true
-        // found, and not inserted => false
-        Ok(true)
+    async fn exists_or_create(&self, ttl: usize, fields: &RuleFields) -> Result<bool, ProxyError> {
+        let key = fields.stringify();
+        let mut redis = *self.redis.get().unwrap();
+
+        let (found,): (Option<bool>,) = async_transaction!(&mut redis, &[&key], {
+            pipe()
+                .atomic()
+                .getset(&key, true)
+                .pexpire(&key, ttl)
+                .ignore()
+                .query_async(&mut redis)
+                .await?
+        });
+
+        Ok(found.unwrap_or(false))
     }
 
     /// Get an invalid route response.

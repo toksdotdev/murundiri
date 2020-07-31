@@ -1,7 +1,6 @@
-port: 8080
+docker: "/var/run/docker.sock"
 rules:
   ^/api/v1/books:
-    timeframe: 2 #ms
     action:
       respond:
         success: { status: "success", message: "Is idempotent." }
@@ -12,7 +11,7 @@ rules:
         - apple_id
 
   ^/api/v1/recipient:
-    timeframe: 5 #ms
+    ttl: 5000 #ms
     action:
       respond:
         success: { status: "pending", message: "Bill is still pending." }
@@ -24,7 +23,7 @@ rules:
         - pan
 
   \w+/api/ships:
-    timeframe: 3
+    ttl: 30
     action:
       redirect:
         uri: https://google.com:9000/v2

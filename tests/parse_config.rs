@@ -5,7 +5,7 @@ use std::{fs, str::from_utf8};
 #[test]
 fn test_that_config_is_parsed() {
     let book_rule = Rule {
-        timeframe: 2,
+        ttl: default_ttl(),
         action: RuleAction::default(),
         fields: RuleFields {
             body: Some(["trx_id".to_string(), "apple_id".to_string()].to_vec()),
@@ -15,7 +15,7 @@ fn test_that_config_is_parsed() {
     };
 
     let billing_rule = Rule {
-        timeframe: 5,
+        ttl: 5000,
         action: RuleAction::Respond {
             success: json!({
                 "status": "pending",
@@ -37,7 +37,7 @@ fn test_that_config_is_parsed() {
     };
 
     let shipping_rule = Rule {
-        timeframe: 3,
+        ttl: 30,
         action: RuleAction::Redirect {
             uri: "https://google.com:9000/v2".to_string(),
         },
@@ -49,8 +49,6 @@ fn test_that_config_is_parsed() {
     };
 
     let expected_config = Config::new(
-        "0.0.0.0".parse().unwrap(),
-        8080,
         "/var/run/docker.sock".to_string(),
         hashmap![
         UriRegex::from_str("\\w+/api/ships").unwrap() => shipping_rule,

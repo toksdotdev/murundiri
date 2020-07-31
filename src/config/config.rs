@@ -3,44 +3,19 @@ use crate::config::errors::ConfigParseError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct Config {
-    #[serde(default = "default_ip")]
-    ip: IpAddr,
-
-    #[serde(default = "default_port")]
-    port: u16,
-
-    #[serde(default = "default_docker_client")]
-    docker_client: String,
+    #[serde(default = "default_docker_client", rename = "docker")]
+    docker_path: String,
 
     rules: HashMap<UriRegex, Rule>,
 }
 
 impl Config {
-    pub fn new(
-        ip: IpAddr,
-        port: u16,
-        docker_client: String,
-        rules: HashMap<UriRegex, Rule>,
-    ) -> Self {
-        Self {
-            ip,
-            port,
-            docker_client,
-            rules,
-        }
-    }
-
-    pub fn ip(&self) -> IpAddr {
-        self.ip
-    }
-
-    pub fn port(&self) -> u16 {
-        self.port
+    pub fn new(docker_path: String, rules: HashMap<UriRegex, Rule>) -> Self {
+        Self { docker_path, rules }
     }
 
     pub fn from_file(file_path: &str) -> Result<Self, ConfigParseError> {
@@ -66,14 +41,6 @@ impl Config {
     }
 }
 
-fn default_ip() -> IpAddr {
-    IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
-}
-
-fn default_port() -> u16 {
-    80
-}
-
 fn default_docker_client() -> String {
     "/var/run/docker.sock".to_string()
 }
@@ -81,9 +48,7 @@ fn default_docker_client() -> String {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            ip: default_ip(),
-            port: default_port(),
-            docker_client: "/var/run/docker.sock".to_string(),
+            docker_path: "/var/run/docker.sock".to_string(),
             rules: HashMap::new(),
         }
     }
