@@ -1,28 +1,25 @@
 use super::errors::ProxyError;
-use crate::{
-    async_transaction,
-    config::{Config, Json, Rule, RuleAction::*, RuleFields, Stringify},
-};
+use crate::config::{Config, Json, Rule, RuleAction::*, RuleFields, Stringify};
 use hyper::{Body, Request, Response, StatusCode};
 use hyper_reverse_proxy::{call, ProxyError as HyperReverseProxyError};
 use r2d2::{ManageConnection, Pool};
-use redis::{pipe, AsyncCommands, ConnectionLike};
+use redis::{transaction, Commands, ConnectionLike};
 use std::net::SocketAddr;
 
 pub struct Resolver<M, C>
 where
-    C: AsyncCommands + Send + Copy + 'static,
-    M: ConnectionLike + ManageConnection<Connection = C>,
+    C: Commands + ConnectionLike + Send + 'static,
+    M: ManageConnection<Connection = C>,
 {
     socket: SocketAddr,
     config: Config,
     redis: Pool<M>,
 }
 
-impl<C, M> Resolver<M, C>
+impl<D, M> Resolver<M, D>
 where
-    C: AsyncCommands + Copy + Send + 'static,
-    M: ConnectionLike + ManageConnection<Connection = C>,
+    D: Commands + ConnectionLike + Send + 'static,
+    M: ManageConnection<Connection = D>,
 {
     pub fn new(socket: SocketAddr, config: Config, redis: Pool<M>) -> Self {
         Self {
@@ -57,19 +54,18 @@ where
 
     async fn exists_or_create(&self, ttl: usize, fields: &RuleFields) -> Result<bool, ProxyError> {
         let key = fields.stringify();
-        let mut redis = *self.redis.get().unwrap();
+        let mut redis = self.redis.clone().get()?;
 
-        let (found,): (Option<bool>,) = async_transaction!(&mut redis, &[&key], {
-            pipe()
+        let found = transaction(&mut *redis, &[&key], |conn, pipe| {
+            Ok(pipe
                 .atomic()
                 .getset(&key, true)
                 .pexpire(&key, ttl)
                 .ignore()
-                .query_async(&mut redis)
-                .await?
-        });
+                .query::<Option<(Option<bool>,)>>(conn)?)
+        })?;
 
-        Ok(found.unwrap_or(false))
+        Ok(found.0.unwrap_or(false))
     }
 
     /// Get an invalid route response.

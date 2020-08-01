@@ -1,6 +1,6 @@
-mod errors;
-mod resolver;
-mod server;
+pub mod errors;
+pub mod resolver;
+pub mod server;
 
 // Async transactions aren't currently supported.
 // See link for workaround https://github.com/mitsuhiko/redis-rs/issues/353#issuecomment-666290557

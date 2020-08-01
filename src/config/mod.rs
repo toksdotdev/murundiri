@@ -6,5 +6,6 @@ mod url_regex;
 
 pub use config::Config;
 pub use constructs::*;
+pub use errors::ConfigParseError;
 pub use json::Json;
 pub use url_regex::UriRegex;

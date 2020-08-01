@@ -1,3 +1,4 @@
 /target
 sample.yml
 .vscode
+.env

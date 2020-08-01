@@ -2,7 +2,7 @@ use super::{url_regex::UriRegex, Rule};
 use crate::config::errors::ConfigParseError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
+use std::{fs, path::Path};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields, default)]
@@ -18,8 +18,10 @@ impl Config {
         Self { docker_path, rules }
     }
 
-    pub fn from_file(file_path: &str) -> Result<Self, ConfigParseError> {
-        Self::parse(&fs::read_to_string(file_path).map_err(|err| ConfigParseError::Io(err))?)
+    pub fn from_file(file_path: impl AsRef<Path>) -> Result<Self, ConfigParseError> {
+        Self::parse(&String::from_utf8_lossy(
+            &fs::read(file_path).map_err(|err| ConfigParseError::ReadError(err))?,
+        ))
     }
 
     pub fn parse(content: &str) -> Result<Self, ConfigParseError> {

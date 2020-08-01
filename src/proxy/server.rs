@@ -3,7 +3,7 @@ use crate::{config::Config, proxy::errors::ProxyError};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use r2d2::{ManageConnection, Pool};
-use redis::{AsyncCommands, ConnectionLike};
+use redis::{Commands, ConnectionLike};
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
 
 pub async fn start<C, M>(
@@ -12,8 +12,8 @@ pub async fn start<C, M>(
     redis_pool: Pool<M>,
 ) -> Result<(), ProxyError>
 where
-    C: AsyncCommands + Copy + Send + 'static,
-    M: ConnectionLike + ManageConnection<Connection = C>,
+    C: Commands + ConnectionLike + Send + 'static,
+    M: ManageConnection<Connection = C>,
 {
     let resolver = Arc::new(Resolver::new(address, config, redis_pool));
 
