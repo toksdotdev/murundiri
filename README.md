@@ -1,6 +1,6 @@
 # 👮Murundiri
 
-Murundiri is a blazing fast and stand-alone idempotency enforcing proxy designed for scale.
+Murundiri is a blazing fast and configurable idempotency reverse-proxy designed for scale.
 
 ## Features
 
