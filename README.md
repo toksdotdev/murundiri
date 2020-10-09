@@ -5,8 +5,8 @@ Murundiri is a blazing fast and configurable idempotency reverse-proxy designed 
 ## Features
 
 - It can exist as either a `proxy` or `stand-alone` service.
-- Allows supporte for integration with a redis cluster for caching.
-- Support redis clusters (at least 3).
+- Allows support for integration with a redis cluster for caching.
+- Supports redis clusters (at least 3).
 - Easily configuration via a `.yaml` file.
 - Supports all HTTP verbs.
 - Supports the following actions:
@@ -34,7 +34,7 @@ The core implementation has been implemented, although, this isn't ready for pro
 
 ## Contributing
 
-If you find any issue, bug or missing feature, please kindly create an issue or submit a pull request, as it will go a long way in helping other [Rustaceans](https://www.rust-lang.org/community) grow.
+If you find any issue, bug, or missing feature, please kindly create an issue or submit a pull request, as it will go a long way in helping other [Rustaceans](https://www.rust-lang.org/community) grow.
 
 ## License
 
